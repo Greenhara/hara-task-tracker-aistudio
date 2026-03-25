@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #a3b5a0;
+  --secondary: #8a9687;
+  --bg: #d7e4d5;
+  --text: #6b5e4f;
+  --highlight: #b8cbb5;
+  --white: #ffffff;
+}
+
+[data-theme="dark"] {
+  --primary: #7d8f7a;
+  --secondary: #5f6b5c;
+  --bg: #2a3329;
+  --text: #d7e4d5;
+  --highlight: #4a5748;
+  --white: #1a1f19;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  transition:
+    background-color 0.3s,
+    color 0.3s;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--highlight);
+  border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary);
+}
+
+/* For Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--highlight) transparent;
+}
