@@ -620,24 +620,25 @@ function App() {
                           )}
                         </div>
                         <div className="flex items-center gap-1 md:gap-2 shrink-0">
-                          <input
-                            type="date"
-                            value={task.deadline || ""}
-                            onChange={(e) => setTaskDeadline(task.id, e.target.value)}
-                            className={`text-[10px] bg-[var(--highlight)] rounded p-1 outline-none cursor-pointer transition-all ${isOverdue ? "text-red-500 font-bold opacity-100" : "opacity-0 group-hover:opacity-100"}`}
-                          />
                           <select
                             value={task.listId}
                             onChange={(e) => moveTask(task.id, e.target.value)}
-                            className="hidden md:block opacity-0 group-hover:opacity-100 text-[10px] bg-[var(--highlight)] rounded p-1 outline-none cursor-pointer transition-all"
+                            className="opacity-0 group-hover:opacity-100 text-[10px] bg-[var(--highlight)] rounded p-1 outline-none cursor-pointer transition-all max-w-[70px] md:max-w-[100px] truncate"
+                            title="Move to list"
                           >
-                            <option value="1">My Tasks</option>
+                            <option value="all">No List</option>
                             {lists.map((l) => (
                               <option key={l.id} value={l.id}>
                                 {l.title}
                               </option>
                             ))}
                           </select>
+                          <input
+                            type="date"
+                            value={task.deadline || ""}
+                            onChange={(e) => setTaskDeadline(task.id, e.target.value)}
+                            className={`text-[10px] bg-[var(--highlight)] rounded p-1 outline-none cursor-pointer transition-all ${isOverdue ? "text-red-500 font-bold opacity-100" : "opacity-0 group-hover:opacity-100"}`}
+                          />
                           <button
                             onClick={() => toggleImportant(task.id)}
                             className={`p-1 transition-all hover:scale-125 ${
