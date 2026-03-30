@@ -36,10 +36,14 @@ function App() {
   const [listToDelete, setListToDelete] = useState<string | null>(null);
 
   const [editingListId, setEditingListId] = useState<string | null>(null);
+  const [editingHeaderListId, setEditingHeaderListId] = useState<string | null>(null);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
+  const [headerEditValue, setHeaderEditValue] = useState("");
 
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [diceMessage, setDiceMessage] = useState(false);
 
   const activeList = lists.find((l) => l.id === activeListId);
   const filteredTasks = (
@@ -65,24 +69,26 @@ function App() {
   const pickRandomTask = () => {
     const activeTasks = filteredTasks.filter((t) => !t.completed);
     if (activeTasks.length === 0) {
-      alert("No active tasks to pick from!");
+      setDiceMessage(true);
+      setTimeout(() => setDiceMessage(false), 3000);
       return;
     }
+
+    const randomTask =
+      activeTasks[Math.floor(Math.random() * activeTasks.length)];
+
+    setHighlightedTask(randomTask.id);
+    
     setTimeout(() => {
-      const randomIndex = Math.floor(Math.random() * activeTasks.length);
-      const randomTask = activeTasks[randomIndex];
-      setHighlightedTask(randomTask.id);
-      
-      // Scroll to the task if it's in the list view
       const element = document.getElementById(`task-${randomTask.id}`);
       if (element) {
         element.scrollIntoView({ behavior: "smooth", block: "center" });
       }
+    }, 100);
 
-      setTimeout(() => {
-        setHighlightedTask(null);
-      }, 3000);
-    }, 500);
+    setTimeout(() => {
+      setHighlightedTask(null);
+    }, 3000);
   };
 
   useEffect(() => {
@@ -258,54 +264,77 @@ function App() {
         <header className="flex items-center gap-4 mb-6 md:mb-8">
           <button
             onClick={() => setIsSidebarOpen(true)}
-            className="p-2 lg:hidden hover:bg-black/5 rounded-lg transition-colors"
+            className="p-2 lg:hidden hover:bg-black/10 rounded-lg transition-colors cursor-pointer"
           >
             <Menu size={24} />
           </button>
-          <div className="flex items-baseline gap-2 flex-1">
-            {editingListId === activeListId && activeListId !== "all" && activeListId !== "starred" && activeListId !== "dashboard" ? (
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            {editingHeaderListId === activeListId &&
+            activeListId !== "all" &&
+            activeListId !== "starred" &&
+            activeListId !== "dashboard" ? (
               <input
                 autoFocus
                 type="text"
-                value={editValue}
-                onChange={(e) => setEditValue(e.target.value)}
+                value={headerEditValue}
+                onChange={(e) => setHeaderEditValue(e.target.value)}
                 onBlur={() => {
-                  if (editValue && activeList && editValue !== activeList.title) updateListTitle(activeList.id, editValue);
-                  setEditingListId(null);
+                  if (headerEditValue.trim() && headerEditValue !== activeList?.title) {
+                    updateListTitle(activeListId, headerEditValue.trim());
+                  }
+                  setEditingHeaderListId(null);
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
-                    if (editValue && activeList && editValue !== activeList.title) updateListTitle(activeList.id, editValue);
-                    setEditingListId(null);
+                    if (headerEditValue.trim() && headerEditValue !== activeList?.title) {
+                      updateListTitle(activeListId, headerEditValue.trim());
+                    }
+                    setEditingHeaderListId(null);
                   }
-                  if (e.key === "Escape") setEditingListId(null);
+                  if (e.key === "Escape") {
+                    setEditingHeaderListId(null);
+                  }
                 }}
-                className="text-2xl md:text-3xl font-bold leading-none bg-black/5 rounded px-2 outline-none w-full"
+                className="text-2xl md:text-3xl font-black bg-black/5 rounded-lg px-2 py-1 outline-none focus:ring-2 focus:ring-[var(--primary)] w-full"
               />
             ) : (
-              <h1 className="text-2xl md:text-3xl font-bold leading-none m-0 truncate">
-                {activeListId === "all"
-                  ? "All Tasks"
-                  : activeListId === "dashboard"
-                    ? "All Lists Dashboard"
-                    : activeList?.title}
-              </h1>
+              <div className="flex items-center gap-3 group">
+                <h1 className="text-2xl md:text-3xl font-black tracking-tight">
+                  {activeListId === "all"
+                    ? "All Tasks"
+                    : activeListId === "starred"
+                      ? "Starred"
+                      : activeListId === "dashboard"
+                        ? "Dashboard"
+                        : activeList?.title}
+                </h1>
+                {activeListId !== "all" &&
+                  activeListId !== "starred" &&
+                  activeListId !== "dashboard" && (
+                    <div className="flex items-center gap-1">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setHeaderEditValue(activeList?.title || "");
+                          setEditingHeaderListId(activeListId);
+                        }}
+                        className="p-2 hover:bg-black/10 rounded-xl transition-all cursor-pointer"
+                      >
+                        <Edit2 size={20} className="text-[var(--primary)]" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setListToDelete(activeListId);
+                        }}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-xl transition-all cursor-pointer"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </div>
+                  )}
+              </div>
             )}
-            {activeListId !== "all" &&
-              activeListId !== "starred" &&
-              activeListId !== "dashboard" && (
-                <button
-                  onClick={() => {
-                    if (activeList) {
-                      setEditValue(activeList.title);
-                      setEditingListId(activeList.id);
-                    }
-                  }}
-                  className="p-2 hover:bg-black/5 rounded-lg opacity-40 hover:opacity-100 transition-all cursor-pointer"
-                >
-                  <Edit2 size={16} />
-                </button>
-              )}
           </div>
         </header>
 
@@ -337,29 +366,43 @@ function App() {
               </div>
             )}
 
-            <div className="flex flex-col md:flex-row gap-3">
-              <div className="relative w-full md:w-1/3">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 opacity-30" size={16} />
+            <div className="flex flex-row gap-4 mb-8">
+              <div className="relative flex-1">
+                <Search
+                  className="absolute left-4 top-1/2 -translate-y-1/2 opacity-30"
+                  size={20}
+                />
                 <input
                   type="text"
                   placeholder="Search Task"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-black/5 rounded-xl border-none outline-none focus:ring-2 focus:ring-[var(--primary)] text-sm"
+                  className="w-full pl-12 pr-4 py-4 bg-black/5 rounded-2xl border-none outline-none focus:ring-2 focus:ring-[var(--primary)] text-lg"
                 />
               </div>
-              <div className="relative w-full md:w-2/3">
-                <Plus className="absolute left-3 top-1/2 -translate-y-1/2 opacity-30" size={16} />
+
+              <div className="flex-1 relative">
+                <Plus
+                  className="absolute left-4 top-1/2 -translate-y-1/2 opacity-30"
+                  size={20}
+                />
                 <input
                   type="text"
-                  placeholder="What's on your mind? (Press Enter to add)"
-                  className="w-full pl-10 pr-4 py-3 rounded-xl bg-[var(--white)] border border-[var(--secondary)] outline-none focus:ring-2 focus:ring-[var(--primary)] text-[var(--text)] text-sm shadow-sm"
+                  placeholder="Press enter to add Task"
+                  value={newTaskTitle}
+                  onChange={(e) => setNewTaskTitle(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter" && e.currentTarget.value) {
-                      addTask(e.currentTarget.value);
-                      e.currentTarget.value = "";
+                    if (e.key === "Enter" && newTaskTitle) {
+                      addTask(
+                        newTaskTitle,
+                        activeListId === "all" || activeListId === "starred"
+                          ? "all"
+                          : activeListId,
+                      );
+                      setNewTaskTitle("");
                     }
                   }}
+                  className="w-full pl-12 pr-4 py-4 bg-[var(--white)] rounded-2xl shadow-sm border border-[var(--secondary)] outline-none focus:ring-2 focus:ring-[var(--primary)] text-lg"
                 />
               </div>
             </div>
@@ -488,9 +531,10 @@ function App() {
                                             e.stopPropagation();
                                             deleteTask(t.id);
                                           }}
-                                          className="opacity-0 group-hover/comp:opacity-100 text-red-500 p-1 hover:bg-red-50 rounded transition-all"
+                                          className="opacity-100 text-red-500 p-1.5 hover:bg-red-50 rounded transition-all"
+                                          title="Delete Task"
                                         >
-                                          <Trash2 size={10} />
+                                          <Trash2 size={12} />
                                         </button>
                                       </div>
                                     ))}
@@ -816,6 +860,18 @@ function App() {
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {diceMessage && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-[var(--text)] text-[var(--bg)] px-6 py-3 rounded-full shadow-2xl z-50 font-medium whitespace-nowrap"
+          >
+            There is no task to choose from
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
